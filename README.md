@@ -4,7 +4,7 @@
 
 > **Build it. Document it. Automate it. Improve it.**
 
-## 🎯 Objective
+## Objective
 
 HenryCloud is a personal infrastructure project created to learn, implement and document real-world technologies related to:
 
@@ -20,7 +20,7 @@ HenryCloud is a personal infrastructure project created to learn, implement and 
 
 The project is built incrementally, documenting the actual infrastructure and configuration at each stage.
 
-## 🏗️ Current Architecture
+## Current Architecture
 
 ```text
                          LAN
@@ -51,7 +51,7 @@ The project is built incrementally, documenting the actual infrastructure and co
 
 The architecture will evolve as additional services are implemented.
 
-## 🖥️ Infrastructure
+## Infrastructure
 
 ### Proxmox Host
 
@@ -80,7 +80,7 @@ The architecture will evolve as additional services are implemented.
 | IP Address       | `192.168.0.224/24` |
 | Gateway          | `192.168.0.1`      |
 
-## 🐳 Docker
+## Docker
 
 Docker is running on the Debian VM.
 
@@ -93,7 +93,7 @@ Docker is running on the Debian VM.
 
 Docker Compose is used to manage the HenryCloud services.
 
-## ☁️ Current Services
+## Current Services
 
 ### Nextcloud
 
@@ -114,7 +114,7 @@ PostgreSQL is currently deployed as a Docker container and is used as the Nextcl
 * User: `nextcloud`
 * Persistent database data stored under `/opt/henrycloud/data/postgres`
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 /opt/henrycloud/
@@ -134,7 +134,7 @@ PostgreSQL is currently deployed as a Docker container and is used as the Nextcl
 
 Sensitive information and application data are intentionally excluded from Git.
 
-## 💾 Backup
+## Backup
 
 An initial backup has been created containing:
 
@@ -151,7 +151,7 @@ Future work will include:
 * Retention policies
 * Disaster recovery procedures
 
-## 🔐 Security
+##  Security
 
 Security is treated as an integral part of the project.
 
@@ -176,7 +176,7 @@ Planned security improvements include:
 
 **No passwords, private keys, API tokens or other secrets are stored in this repository.**
 
-## 📊 Monitoring
+## Monitoring
 
 Monitoring is planned for a future stage.
 
@@ -189,7 +189,7 @@ The goal is to monitor:
 * Storage usage
 * Alerts
 
-## 🚀 Roadmap
+## Roadmap
 
 ### Completed
 
@@ -221,7 +221,7 @@ The goal is to monitor:
 * [ ] CI/CD
 * [ ] Infrastructure as Code
 
-## 👨‍💻 Author
+## Author
 
 **Henry Pérez**
 
