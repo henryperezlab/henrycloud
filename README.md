@@ -13,47 +13,86 @@ HenryCloud is a personal infrastructure project created to learn, implement and 
 * Virtualization
 * Docker
 * Cloud infrastructure
+* Infrastructure as Code
+* Configuration Management
 * Security
 * Automation
 * Monitoring
 * Backup and recovery
+* CI/CD
 
 The project is built incrementally, documenting the actual infrastructure and configuration at each stage.
 
-## Current Architecture
+The long-term goal is to transform the environment into a reproducible, automated and documented infrastructure platform.
+
+---
+
+# Architecture
 
 ```text
-                         LAN
+                         GitHub
+                           │
+                           │
+                    GitHub Actions
+                    (future CI/CD)
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+          Terraform                  Ansible
+              │                         │
+              ▼                         ▼
+        ┌───────────┐             ┌───────────┐
+        │ Proxmox   │             │ docker01  │
+        │    pve    │────────────▶│ Debian 13 │
+        └───────────┘             └─────┬─────┘
+                                        │
+                                      Docker
+                                        │
+                          ┌─────────────┴─────────────┐
+                          │                           │
+                    ┌─────▼─────┐               ┌─────▼─────┐
+                    │ Nextcloud │               │ PostgreSQL│
+                    │  35.0.1   │               │   17.11   │
+                    └─────┬─────┘               └───────────┘
                           │
-                          ▼
-                    ┌───────────┐
-                    │  Proxmox  │
-                    │    pve    │
-                    └─────┬─────┘
+                    Persistent Data
                           │
-                    Debian 13 VM
-                       docker01
-                    192.168.0.224
-                          │
-                       Docker
-                          │
-              ┌───────────┴───────────┐
-              │                       │
-        ┌─────▼─────┐           ┌─────▼─────┐
-        │ Nextcloud │           │ PostgreSQL│
-        │  35.0.1   │           │   17.11   │
-        └─────┬─────┘           └───────────┘
-              │
-        Persistent Data
-              │
-        Backup Repository
+                    Backup Repository
 ```
 
-The architecture will evolve as additional services are implemented.
+### Infrastructure workflow
 
-## Infrastructure
+```text
+Terraform
+    │
+    └── Infrastructure provisioning / management
+                │
+                ▼
+             Proxmox
+                │
+                ▼
+             docker01
+                │
+                ▼
+             Ansible
+                │
+                └── System configuration / automation
+                            │
+                            ▼
+                         Docker
+                            │
+                    ┌───────┴───────┐
+                    │               │
+                Nextcloud       PostgreSQL
+```
 
-### Proxmox Host
+The architecture will evolve as additional services and automation are implemented.
+
+---
+
+# Infrastructure
+
+## Proxmox Host
 
 | Component  | Value               |
 | ---------- | ------------------- |
@@ -67,7 +106,7 @@ The architecture will evolve as additional services are implemented.
 | Network    | `192.168.0.0/24`    |
 | Proxmox IP | `192.168.0.223`     |
 
-### Docker VM
+## Docker VM
 
 | Component        | Value              |
 | ---------------- | ------------------ |
@@ -80,9 +119,139 @@ The architecture will evolve as additional services are implemented.
 | IP Address       | `192.168.0.224/24` |
 | Gateway          | `192.168.0.1`      |
 
-## Docker
+The virtual machine is managed by Proxmox and configured through Infrastructure as Code using Terraform.
 
-Docker is running on the Debian VM.
+---
+
+# Infrastructure as Code
+
+## Terraform
+
+Terraform is used to describe and manage the Proxmox infrastructure.
+
+Current implementation:
+
+* Terraform **1.16.5**
+* Provider: `bpg/proxmox`
+* Proxmox VM managed: `docker01`
+* VM ID: `100`
+* Proxmox node: `pve`
+
+The existing `docker01` virtual machine was imported into Terraform instead of being recreated.
+
+```text
+Terraform
+    │
+    ▼
+Proxmox API
+    │
+    ▼
+VM 100 - docker01
+```
+
+Terraform state is intentionally excluded from Git.
+
+Sensitive variables and credentials are also excluded from the repository.
+
+### Terraform structure
+
+```text
+terraform/
+├── main.tf
+├── outputs.tf
+├── variables.tf
+├── version.tf
+├── .gitignore
+└── .terraform.lock.hcl
+```
+
+The current Terraform configuration has been validated with:
+
+```text
+terraform plan
+```
+
+Result:
+
+```text
+No changes. Your infrastructure matches the configuration.
+```
+
+---
+
+# Configuration Management
+
+## Ansible
+
+Ansible is used for configuration management and automation of the Debian VM.
+
+Current implementation provides:
+
+* SSH key-based authentication
+* Inventory management
+* Automatic system fact gathering
+* Infrastructure discovery
+* Remote execution
+* Idempotent automation foundation
+
+Current managed host:
+
+```text
+docker01
+192.168.0.224
+```
+
+### Ansible structure
+
+```text
+ansible/
+├── ansible.cfg
+├── inventory/
+│   └── hosts.yml
+├── playbooks/
+│   └── site.yml
+└── roles/
+```
+
+### Current inventory
+
+```text
+all
+└── docker
+    └── docker01
+```
+
+### Current automation
+
+The first Ansible playbook performs system discovery and reports:
+
+* Hostname
+* Operating system
+* Kernel
+* CPU
+* Memory
+* IPv4 address
+* Root filesystem capacity
+
+Example result:
+
+```text
+Hostname: docker01
+OS: Debian 13.7
+Kernel: 6.12.111+deb13-amd64
+CPU cores: 2
+Memory: 3921 MB
+IPv4: 192.168.0.224
+Disk /: 37 GB
+```
+
+Future Ansible automation will manage Docker, system configuration, security hardening and application services.
+
+---
+
+# Docker
+
+Docker is running on the Debian VM `docker01`.
 
 | Component      | Version |
 | -------------- | ------- |
@@ -91,11 +260,15 @@ Docker is running on the Debian VM.
 | containerd     | 2.3.6   |
 | Buildx         | 0.37.1  |
 
-Docker Compose is used to manage the HenryCloud services.
+Docker Compose is used to manage the HenryCloud application services.
 
-## Current Services
+Future automation will progressively move Docker configuration and service management into Ansible.
 
-### Nextcloud
+---
+
+# Current Services
+
+## Nextcloud
 
 Nextcloud is currently deployed as a Docker container.
 
@@ -105,7 +278,7 @@ Nextcloud is currently deployed as a Docker container.
 * Access: LAN
 * Persistent application data stored under `/opt/henrycloud/data/nextcloud`
 
-### PostgreSQL
+## PostgreSQL
 
 PostgreSQL is currently deployed as a Docker container and is used as the Nextcloud database.
 
@@ -114,7 +287,41 @@ PostgreSQL is currently deployed as a Docker container and is used as the Nextcl
 * User: `nextcloud`
 * Persistent database data stored under `/opt/henrycloud/data/postgres`
 
-## Project Structure
+---
+
+# Project Structure
+
+## Repository
+
+```text
+henrycloud/
+├── ansible/
+│   ├── ansible.cfg
+│   ├── inventory/
+│   │   └── hosts.yml
+│   ├── playbooks/
+│   │   └── site.yml
+│   └── roles/
+│
+├── docs/
+│   └── infrastructure/
+│       └── network.md
+│
+├── terraform/
+│   ├── main.tf
+│   ├── outputs.tf
+│   ├── variables.tf
+│   ├── version.tf
+│   ├── .gitignore
+│   └── .terraform.lock.hcl
+│
+├── .gitignore
+└── README.md
+```
+
+## Application data
+
+Application data lives on the Docker VM:
 
 ```text
 /opt/henrycloud/
@@ -134,7 +341,9 @@ PostgreSQL is currently deployed as a Docker container and is used as the Nextcl
 
 Sensitive information and application data are intentionally excluded from Git.
 
-## Backup
+---
+
+# Backup
 
 An initial backup has been created containing:
 
@@ -151,7 +360,9 @@ Future work will include:
 * Retention policies
 * Disaster recovery procedures
 
-##  Security
+---
+
+# Security
 
 Security is treated as an integral part of the project.
 
@@ -160,9 +371,11 @@ Current practices include:
 * Secrets stored outside the Git repository
 * Restricted permissions on secret files
 * Persistent application data stored outside the Git repository
+* SSH key-based authentication for Ansible
 * Regular system updates
 * Docker service isolation
 * Backup of application data and database
+* Terraform credentials managed outside the repository
 
 Planned security improvements include:
 
@@ -173,10 +386,13 @@ Planned security improvements include:
 * Network segmentation
 * Monitoring and alerting
 * Security auditing
+* Secrets management
 
 **No passwords, private keys, API tokens or other secrets are stored in this repository.**
 
-## Monitoring
+---
+
+# Monitoring
 
 Monitoring is planned for a future stage.
 
@@ -189,9 +405,11 @@ The goal is to monitor:
 * Storage usage
 * Alerts
 
-## Roadmap
+---
 
-### Completed
+# Roadmap
+
+## Completed
 
 * [x] Create GitHub repository
 * [x] Create project documentation
@@ -206,10 +424,25 @@ The goal is to monitor:
 * [x] Create initial backups
 * [x] Verify database connectivity
 * [x] Verify backup integrity
+* [x] Document infrastructure configuration
+* [x] Implement Terraform
+* [x] Import existing VM into Terraform
+* [x] Validate Terraform configuration
+* [x] Implement Ansible
+* [x] Configure Ansible inventory
+* [x] Configure SSH key authentication
+* [x] Implement system discovery playbook
+* [x] Validate Ansible connectivity
 
-### In Progress / Planned
+## In Progress
 
-* [ ] Document infrastructure configuration
+* [ ] Automate Docker configuration with Ansible
+* [ ] Manage Docker services with Ansible
+* [ ] Improve infrastructure documentation
+* [ ] Add infrastructure validation
+
+## Planned
+
 * [ ] Reverse proxy
 * [ ] HTTPS
 * [ ] OnlyOffice
@@ -217,11 +450,34 @@ The goal is to monitor:
 * [ ] Automated backups
 * [ ] Restore testing
 * [ ] Security hardening
-* [ ] Automation
-* [ ] CI/CD
-* [ ] Infrastructure as Code
+* [ ] Network segmentation
+* [ ] Secrets management
+* [ ] CI/CD with GitHub Actions
+* [ ] Automated infrastructure deployment
+* [ ] Disaster recovery testing
 
-## Author
+---
+
+# Technologies
+
+| Area                     | Technology                                    |
+| ------------------------ | --------------------------------------------- |
+| Hypervisor               | Proxmox VE                                    |
+| Operating System         | Debian Linux                                  |
+| Infrastructure as Code   | Terraform                                     |
+| Configuration Management | Ansible                                       |
+| Containers               | Docker                                        |
+| Container Orchestration  | Docker Compose                                |
+| Database                 | PostgreSQL                                    |
+| Cloud Platform           | Nextcloud                                     |
+| Version Control          | Git / GitHub                                  |
+| CI/CD                    | GitHub Actions *(planned)*                    |
+| Networking               | TCP/IP, Linux networking                      |
+| Security                 | SSH, firewall, secrets management *(planned)* |
+
+---
+
+# Author
 
 **Henry Pérez**
 
