@@ -1,0 +1,17 @@
+---
+- name: HenryCloud - System Discovery
+  hosts: docker
+  become: false
+  gather_facts: true
+
+  tasks:
+    - name: Show system information
+      ansible.builtin.debug:
+        msg:
+          - "Hostname: {{ ansible_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel: {{ ansible_kernel }}"
+          - "CPU cores: {{ ansible_processor_vcpus }}"
+          - "Memory: {{ ansible_memtotal_mb }} MB"
+          - "IPv4: {{ ansible_default_ipv4.address }}"
+          - "Disk /: {{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_total') | first | default(0) | int // 1024 // 1024 // 1024 }} GB"
