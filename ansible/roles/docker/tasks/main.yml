@@ -1,0 +1,31 @@
+---
+- name: Gather Docker service facts
+  ansible.builtin.service_facts:
+
+- name: Check Docker service state
+  ansible.builtin.debug:
+    msg: >-
+      Docker service:
+      {{ ansible_facts.services['docker.service'].state
+         if 'docker.service' in ansible_facts.services
+         else 'not found' }}
+
+- name: Check Docker installation
+  ansible.builtin.command:
+    cmd: docker --version
+  register: docker_version
+  changed_when: false
+  check_mode: false
+
+- name: Check Docker Compose installation
+  ansible.builtin.command:
+    cmd: docker compose version
+  register: compose_version
+  changed_when: false
+  check_mode: false
+
+- name: Show Docker configuration state
+  ansible.builtin.debug:
+    msg:
+      - "Docker: {{ docker_version.stdout }}"
+      - "Compose: {{ compose_version.stdout }}"

@@ -1,56 +1,8 @@
 ---
-- name: HenryCloud - Docker Validation
+- name: HenryCloud - Docker Configuration Management
   hosts: docker
   become: true
   gather_facts: true
 
-  tasks:
-
-    - name: Check Docker service
-      ansible.builtin.systemd:
-        name: docker
-      register: docker_service
-
-    - name: Check Docker version
-      ansible.builtin.command:
-        cmd: docker --version
-      register: docker_version
-      changed_when: false
-
-    - name: Check Docker Compose version
-      ansible.builtin.command:
-        cmd: docker compose version
-      register: compose_version
-      changed_when: false
-
-    - name: Check running containers
-      ansible.builtin.command:
-        cmd: docker ps
-      register: docker_containers
-      changed_when: false
-
-    - name: Check HenryCloud directory
-      ansible.builtin.stat:
-        path: /opt/henrycloud
-      register: henrycloud_dir
-
-    - name: Check Docker Compose project
-      ansible.builtin.command:
-        cmd: docker compose ps
-        chdir: /opt/henrycloud/compose
-      register: compose_status
-      changed_when: false
-
-    - name: Show Docker validation
-      ansible.builtin.debug:
-        msg:
-          - "Hostname: {{ ansible_hostname }}"
-          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-          - "Docker service: {{ docker_service.status.ActiveState }}"
-          - "Docker: {{ docker_version.stdout }}"
-          - "Compose: {{ compose_version.stdout }}"
-          - "HenryCloud directory: {{ henrycloud_dir.stat.exists }}"
-          - "Running containers:"
-          - "{{ docker_containers.stdout }}"
-          - "Compose status:"
-          - "{{ compose_status.stdout }}"
+  roles:
+    - docker
