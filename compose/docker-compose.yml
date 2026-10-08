@@ -1,0 +1,22 @@
+name: henrycloud
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    env_file:
+      - ../secrets/postgres.env
+    volumes:
+      - ../data/postgres:/var/lib/postgresql/data
+
+  nextcloud:
+    image: nextcloud:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - ../secrets/nextcloud.env
+    ports:
+      - "8080:80"
+    volumes:
+      - ../data/nextcloud:/var/www/html

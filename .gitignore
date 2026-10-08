@@ -18,3 +18,9 @@ crash.*.log
 # Sensitive local files
 *.secret
 *.secrets
+
+# HenryCloud: nunca versionar secretos ni datos
+secrets/
+data/
+*.env
+!*.env.example
