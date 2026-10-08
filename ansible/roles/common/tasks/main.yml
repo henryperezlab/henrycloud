@@ -29,3 +29,7 @@
       - "SSH: {{ common_sshd.stdout_lines | select('match', '^(permitrootlogin|passwordauthentication|pubkeyauthentication) ') | list }}"
       - "unattended-upgrades instalado: {{ 'unattended-upgrades' in ansible_facts.packages }}"
       - "sudoers.d/ansible existe: {{ common_sudoers.stat.exists }}"
+
+- name: Tareas de gestión (solo si common_manage=true)
+  ansible.builtin.include_tasks: manage.yml
+  when: common_manage | bool

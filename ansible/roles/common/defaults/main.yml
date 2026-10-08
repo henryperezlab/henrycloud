@@ -1,0 +1,4 @@
+---
+common_manage: false          # false = solo verifica, true = aplica cambios
+common_ansible_user: henry
+common_ssh_harden: false      # false = no toca SSH, true = aplica el endurecimiento
