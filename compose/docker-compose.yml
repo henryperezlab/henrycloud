@@ -2,7 +2,7 @@ name: henrycloud
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17.11@sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f
     restart: unless-stopped
     env_file:
       - ../secrets/postgres.env
@@ -10,7 +10,7 @@ services:
       - ../data/postgres:/var/lib/postgresql/data
 
   nextcloud:
-    image: nextcloud:latest
+    image: nextcloud:35.0.1@sha256:1969514cbcc9ae1e9a15ba2e388c7a0de5ee49ecd9c1da81e1e1a92d3dda46ca
     restart: unless-stopped
     depends_on:
       - postgres
