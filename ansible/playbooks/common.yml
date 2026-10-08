@@ -1,0 +1,6 @@
+---
+- name: HenryCloud - Common Configuration Management
+  hosts: docker
+  become: true
+  roles:
+    - common

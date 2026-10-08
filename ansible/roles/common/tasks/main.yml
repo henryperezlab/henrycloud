@@ -1,0 +1,31 @@
+---
+- name: Check timezone
+  ansible.builtin.command:
+    cmd: timedatectl show -p Timezone --value
+  register: common_timezone
+  changed_when: false
+  check_mode: false
+
+- name: Check effective SSH configuration
+  ansible.builtin.command:
+    cmd: sshd -T
+  register: common_sshd
+  changed_when: false
+  check_mode: false
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Check sudoers file for Ansible
+  ansible.builtin.stat:
+    path: /etc/sudoers.d/ansible
+  register: common_sudoers
+
+- name: Show common configuration state
+  ansible.builtin.debug:
+    msg:
+      - "Timezone: {{ common_timezone.stdout }}"
+      - "SSH: {{ common_sshd.stdout_lines | select('match', '^(permitrootlogin|passwordauthentication|pubkeyauthentication) ') | list }}"
+      - "unattended-upgrades instalado: {{ 'unattended-upgrades' in ansible_facts.packages }}"
+      - "sudoers.d/ansible existe: {{ common_sudoers.stat.exists }}"
