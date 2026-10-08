@@ -1,0 +1,25 @@
+---
+- name: Stat remote compose file
+  ansible.builtin.stat:
+    path: "{{ compose_project_dir }}/docker-compose.yml"
+    checksum_algorithm: sha256
+  register: compose_remote
+
+- name: Compute repo compose checksum
+  ansible.builtin.set_fact:
+    compose_repo_sha256: "{{ lookup('ansible.builtin.file', playbook_dir ~ '/../../compose/docker-compose.yml', rstrip=False) | hash('sha256') }}"
+
+- name: Check compose project status
+  ansible.builtin.command:
+    cmd: docker compose ps
+    chdir: "{{ compose_project_dir }}"
+  register: compose_ps
+  changed_when: false
+  check_mode: false
+
+- name: Show compose state
+  ansible.builtin.debug:
+    msg:
+      - "Archivo remoto existe: {{ compose_remote.stat.exists }}"
+      - "Repo y servidor coinciden: {{ compose_remote.stat.checksum | default('') == compose_repo_sha256 }}"
+      - "{{ compose_ps.stdout_lines }}"

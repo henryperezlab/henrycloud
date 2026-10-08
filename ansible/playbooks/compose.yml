@@ -1,0 +1,6 @@
+---
+- name: HenryCloud - Compose Management
+  hosts: docker
+  become: true
+  roles:
+    - compose

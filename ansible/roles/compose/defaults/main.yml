@@ -1,0 +1,3 @@
+---
+compose_project_dir: /opt/henrycloud/compose
+compose_manage: false         # false = solo verifica, true = aplica cambios
