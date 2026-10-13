@@ -1,0 +1,24 @@
+---
+- name: Deploy docker-compose.yml (con copia de seguridad del anterior)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../compose/docker-compose.yml"
+    dest: "{{ compose_project_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0664"
+    backup: true
+  register: compose_deployed
+
+- name: Validate compose configuration
+  ansible.builtin.command:
+    cmd: docker compose config -q
+    chdir: "{{ compose_project_dir }}"
+  changed_when: false
+  check_mode: false
+
+- name: Apply compose project (recrea solo lo que cambió)
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: "{{ compose_project_dir }}"
+  when: compose_deployed.changed
+  changed_when: true
